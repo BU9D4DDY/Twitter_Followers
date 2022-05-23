@@ -107,8 +107,11 @@ if __name__ == '__main__':
     node_id = int(input(">> Input an id to suggest some friends: "))
     num = int(input(">> Enter The maximum number of suggestions: "))
     
-    start_tim = time.time()
-    print()
-    G.Suggest_Followers(node_id, num)  # ----> O(a^2)
-    print("\n>> Suggesting Followers Takes: %s seconds ---" % (time.time() - start_tim))
-    print()
+    if G.isValid(node_id):
+        start_tim = time.time()
+        print()
+        G.Suggest_Followers(node_id, num)  # ----> O(a^2)
+        print("\n>> Suggesting Followers Takes: %s seconds ---" % (time.time() - start_tim))
+        print()
+    else:
+        print("Invalid User Id !!!")
