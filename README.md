@@ -43,11 +43,14 @@ This can be represented as follows:
 Coding of this approach can be implemented as:
 
 ```python
-class Graph:
-    def __init__(self, nodes, node_id):
-        self.adjlist = [[] for i in range(nodes)]   # make empty array (list) to hold all the edges
-        self.indexes = {i:j for i,j in zip(node_id, range(nodes))}   #Each node will have an index to be accessed with
-        self.followers = {i:0 for i in node_id}     # a dictionary holds number of followers for each node in a (key : 														value) pair as {node_id : num_of_followers}
+class GRAPH:
+    def __init__(self):
+        self.Following_adjlist = []  # make empty array (list) to hold the following Id for each Id O(1)
+        self.Followers_adjlist = []  # make empty array (list) to hold the followers Id for each Id O(1)
+        self.indexes = {}  # Each node will have an index to be accessed with    O(1)
+        self.followers = {}  # a dictionary holds number of followers for each node the graph          O(1)
+                                                  # (key : value) pair as {node_id : num_of_followers}
+
 ```
 
 > **Analysis:**
@@ -57,7 +60,7 @@ class Graph:
 Firstly we initialize an empty graph
 
 ```python
-G = Graph(0, [])
+G = Graph()
 ```
 
  and then start looping on the CSV file to add all the vertices and edges, and this can be done as follows:
@@ -92,9 +95,11 @@ def isValid(self, node):
 
 ```python
 def MakeAdjacent(self, follower, followed):
-    if followed not in self.adjlist[self.indexes[follower]]: # if followed not in the follower adjlist
-        self.adjlist[self.indexes[follower]].append(followed)
-        self.followers[followed] = self.followers[followed] + 1
+    if followed not in self.Following_adjlist[self.indexes[follower]]:  # if followed not in the follower adjlist //O(a) where a is the following array elements for specific Id
+        self.Following_adjlist[self.indexes[follower]].append(followed) #O(1)
+        self.followers[followed] = self.followers[followed] + 1 #O(1)
+        self.Followers_adjlist[self.indexes[followed]].append(follower) #O(1)
+
 ```
 
 > **Analysis**:
@@ -136,13 +141,13 @@ this will give us a list of nodes that can have a connection with the main node 
 To get the threshold we are giving each of these nodes a counter that counts the number of mutual followers between it and the main node.
 
 ```python
-def Suggest_Followers(self, node_id, num_of_suggestions):
-    node = self.indexes[node_id]
-    children = [self.indexes[n] for n in self.adjlist[node]]
+def Suggest_Followers(self, node_id, num_of_suggestions):  # ----> O(a^2)
+    node = self.indexes[node_id]  # getting node index
+    children = [self.indexes[n] for n in self.Following_adjlist[node]]  # O(a)
     connections = {}
-    for child in children:
-        grandchildren = self.adjlist[child]
-        for vertex in grandchildren:
+    for child in children:  # ----> O(a)
+        grandchildren = self.Following_adjlist[child]
+        for vertex in grandchildren: #O(a^2)
             if self.indexes[vertex] in children or vertex == node_id:
                 continue
             # If connection exists add mutual friends number
@@ -152,11 +157,32 @@ def Suggest_Followers(self, node_id, num_of_suggestions):
             else:
                 connections[vertex] = 1
 
-    connections = sorted(list(connections.items()), key=lambda x: x[1], reverse=True)
+    connections = sorted(list(connections.items()), key=lambda x: x[1], reverse=True)  
+    if not connections: #O(a^2) //List is empty
+        connections = {}
+        children = [self.indexes[n] for n in self.Followers_adjlist[node]]  # O(a)
+        for child in children:  # ----> O(a^2)
+            grandchildren = self.Following_adjlist[child] # O(a)
 
+            for vertex in grandchildren: # O(a^2)
+                if self.indexes[vertex] in children or vertex == node_id:
+                    continue
+                # If connection exists add mutual friends number
+                if vertex in connections.keys():
+                    connections[vertex] += 1
+                # Initialise to 1
+                else:
+                    connections[vertex] = 1
+
+        connections = sorted(list(connections.items()), key=lambda x: x[1], reverse=True)        
+        
+    if num_of_suggestions > len(connections):
+        num_of_suggestions = len(connections)
     z = range(num_of_suggestions)
     for i in z:
         print("You can follow {0:<10} you both have {1:<4} in common".format(connections[i][0], connections[i][1]))
+
+
 ```
 
 > **Analysis**:
@@ -187,5 +213,3 @@ def Suggest_Followers(self, node_id, num_of_suggestions):
 * https://thecodingbot.com/time-and-space-complexity-analysis-of-pythons-list-reverse-method/
 
 * https://www.geeksforgeeks.org/internal-working-of-the-len-function-in-python/#:~:text=Hence%2C%20len()%20function%20in,in%20O(1)%20complexity
-
-  
